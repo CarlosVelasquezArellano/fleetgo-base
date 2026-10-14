@@ -11,7 +11,10 @@ public class ClienteConfig {
 
     // TODO 8: crea un @Bean RestClient con baseUrl leída de la propiedad vehiculos.url
     //         mediante @Value("${vehiculos.url}").
-    RestClient vehiculosClient(String url) {
-        throw new UnsupportedOperationException("TODO 8");
+    @Bean
+    RestClient vehiculosClient(@Value("${vehiculos.url}") String url) {
+        return RestClient.builder()
+                .baseUrl(url)
+                .build();
     }
 }

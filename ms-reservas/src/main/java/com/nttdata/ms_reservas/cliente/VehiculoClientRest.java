@@ -10,8 +10,11 @@ import org.springframework.web.client.RestClient;
 @Component
 public class VehiculoClientRest implements VehiculoClient {
 
+    private final RestClient restClient;
+
     // TODO 9: inyecta el RestClient por constructor.
     public VehiculoClientRest(RestClient restClient) {
+        this.restClient = restClient;
     }
 
     // TODO 10: llama a GET /api/vehiculos/{id} y devuelve el Vehiculo.
@@ -19,6 +22,19 @@ public class VehiculoClientRest implements VehiculoClient {
     //                               sin conexión -> CatalogoNoDisponibleException (RN-07)
     @Override
     public Vehiculo buscar(Long id) {
-        throw new UnsupportedOperationException("TODO 10");
+        try {
+            Vehiculo vehiculo = restClient.get()
+                    .uri("/api/vehiculos/{id}", id)
+                    .retrieve()
+                    .body(Vehiculo.class);
+            if (vehiculo == null) {
+                throw new VehiculoNoEncontradoException(id);
+            }
+            return vehiculo;
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new VehiculoNoEncontradoException(id);
+        } catch (ResourceAccessException e) {
+            throw new CatalogoNoDisponibleException("El catálogo de vehículos no responde");
+        }
     }
 }
