@@ -19,9 +19,14 @@ import java.util.List;
 /** API REST de reservas. */
 // TODO 19: anota la clase como @RestController con la ruta base @RequestMapping("/api/reservas")
 //          e inyecta ReservaService por constructor.
+@RestController
+@RequestMapping("/api/reservas")
 public class ReservaController {
 
+    private final ReservaService service;
+
     public ReservaController(ReservaService service) {
+        this.service = service;
     }
 
     // TODO 20: anota con @PostMapping y @RequestBody. Devuelve 201 con la reserva creada y,
@@ -30,13 +35,26 @@ public class ReservaController {
     //            VehiculoNoDisponibleException     -> 409 con e.getMessage()
     //            VehiculoNoEncontradoException     -> 404 "VEHICULO NO EXISTE"
     //            CatalogoNoDisponibleException     -> 503 "CATALOGO NO DISPONIBLE"
-    public ResponseEntity<Reserva> crear(ReservaRequest req) {
-        throw new UnsupportedOperationException("TODO 20");
+    @PostMapping
+    public ResponseEntity<Reserva> crear(@RequestBody ReservaRequest req) {
+        try {
+            Reserva reserva = service.crear(req);
+            return ResponseEntity.status(HttpStatus.CREATED).body(reserva);
+        } catch (IllegalArgumentException e) {
+            return error(req, HttpStatus.BAD_REQUEST, "DATOS INVALIDOS");
+        } catch (VehiculoNoDisponibleException e) {
+            return error(req, HttpStatus.CONFLICT, e.getMessage());
+        } catch (VehiculoNoEncontradoException e) {
+            return error(req, HttpStatus.NOT_FOUND, "VEHICULO NO EXISTE");
+        } catch (CatalogoNoDisponibleException e) {
+            return error(req, HttpStatus.SERVICE_UNAVAILABLE, "CATALOGO NO DISPONIBLE");
+        }
     }
 
     // TODO 21: anota con @GetMapping y devuelve la lista de reservas del servicio.
+    @GetMapping
     public List<Reserva> listar() {
-        throw new UnsupportedOperationException("TODO 21");
+        return service.listar();
     }
 
     /** Construye la respuesta de error. (Resuelto) */
